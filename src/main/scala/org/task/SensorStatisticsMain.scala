@@ -4,7 +4,6 @@ import java.io.File
 
 object SensorStatisticsMain extends App {
 
-  val dir = "c:\\Users\\torquemada\\workspace\\sensors-stats\\"
 
   def getListOfFiles(dir: String, validSensorData: File => Boolean) = {
     val d = new File(dir)
@@ -12,7 +11,6 @@ object SensorStatisticsMain extends App {
     else List.empty[File]
   }
 
-  def getAllCsv = getListOfFiles(dir, f => f.isFile && f.getName.endsWith(".csv"))
-
+  def getAllCsv(dir: String) = getListOfFiles(dir, f => f.isFile && f.getName.endsWith(".csv"))
 
 }
