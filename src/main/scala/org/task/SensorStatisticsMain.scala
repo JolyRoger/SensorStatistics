@@ -2,6 +2,7 @@ package org.task
 
 import java.io.File
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
 object SensorStatisticsMain extends App {
@@ -16,8 +17,16 @@ object SensorStatisticsMain extends App {
 
   def createRdd(csv: List[File]) = {
     val conf: SparkConf = new SparkConf().setAppName("SensorsStatistics").setMaster("local[*]")
-    val sc: SparkContext = SparkContext.getOrCreate(conf)
+    val sc = SparkContext.getOrCreate(conf)
     val fileRdd = csv.map(f => sc.textFile(f.getAbsolutePath))
-    sc.union(fileRdd)
+    val headers = fileRdd.flatMap(_.take(1)).toSet
+    (sc.union(fileRdd), headers)
+  }
+
+  def createDataRdd(rdd: RDD[String], headers: Set[String]) = {
+    rdd.collect { case record if !headers.contains(record) =>
+      val recArr = record.split(",")
+      (recArr(0).trim, recArr(1).trim)
+    }.groupByKey
   }
 }
