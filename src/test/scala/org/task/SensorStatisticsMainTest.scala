@@ -25,12 +25,17 @@ class SensorStatisticsMainTest extends FlatSpec {
     assert(result.size == 3)
   }
 
-  "The solution" should "collect statistics" in {
+  "The solution" should "convert data rdd to stats rdd" in {
     val csvList = SensorStatisticsMain.getAllCsv(getClass.getResource("/sensors-stats").getPath)
     val (unionRdd, headers) = SensorStatisticsMain.createRdd(csvList)
     val pairRdd = SensorStatisticsMain.createDataRdd(unionRdd, headers)
     val stats = SensorStatisticsMain.processRdd(pairRdd)
     val result = stats.collect
     assert(result.size == 3)
+  }
+
+  "The solution" should "collect statistics" in {
+    val res = SensorStatisticsMain.collectStats(getClass.getResource("/sensors-stats").getPath)
+    assert(true)
   }
 }

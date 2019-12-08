@@ -1,7 +1,7 @@
 package org.task
 
 import java.io.File
-import java.math.{BigDecimal, BigInteger, MathContext, RoundingMode}
+import java.math.{BigDecimal, BigInteger, RoundingMode}
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
@@ -9,7 +9,10 @@ import org.apache.spark.{SparkConf, SparkContext}
 object SensorStatisticsMain extends App {
 
   type CombineWithSum = Tuple5[Int, Int, Int, BigInteger, Int]
-  type CombineWithAvg = Tuple5[Int, Int, Int, Double, Int]
+
+  implicit def ~=(x: Double, y: Double, precision: Double) = {
+    if ((x - y).abs < precision) true else false
+  }
 
   def getListOfFiles(dir: String, validSensorData: File => Boolean) = {
     val d = new File(dir)
@@ -22,6 +25,8 @@ object SensorStatisticsMain extends App {
   def createRdd(csv: List[File]) = {
     val conf: SparkConf = new SparkConf().setAppName("SensorsStatistics").setMaster("local[*]")
     val sc = SparkContext.getOrCreate(conf)
+    sc.setLogLevel("ERROR")
+
     val fileRdd = csv.map(f => sc.textFile(f.getAbsolutePath))
     val headers = fileRdd.flatMap(_.take(1)).toSet
     (sc.union(fileRdd), headers)
@@ -62,5 +67,32 @@ object SensorStatisticsMain extends App {
       v._5))
   }
 
-  def collectStats(path: String) = ???
+  def collectStats(path: String) = {
+    val csvList = getAllCsv(path)
+    val processedFileSize = csvList.size
+    val (unionRdd, headers) = createRdd(csvList)
+    val pairRdd = createDataRdd(unionRdd, headers)
+    val stats = processRdd(pairRdd).cache
+
+    val (totalMeasurements, failedMeasurements) = stats.values.aggregate(0, 0)(
+      (newData, data) => (data._1 + newData._1, data._2 + newData._2),
+      (data1, data2) => (data1._1 + data2._1, data1._2 + data2._2))
+
+    println(s"Num of processed files: $processedFileSize")
+    println(s"Num of processed measurements: $totalMeasurements")
+    println(s"Num of failed measurements: $failedMeasurements")
+
+    println(s"\nSensors with highest avg humidity:\n")
+    println(s"sensor-id,min,avg,max")
+
+    val sortedStat = stats.collect.sortBy(_._2._4)(Ordering[Double].reverse)
+
+    sortedStat.foreach {
+      stat =>
+        println(s"${stat._1}," +
+          s"${if (stat._2._3 > 100) "NaN" else stat._2._3}," +
+          s"${if (~=(stat._2._4, 0d, 0.0001)) "NaN" else stat._2._4}," +
+          s"${if (stat._2._5 < 0) "NaN" else stat._2._5}")
+    }
+  }
 }
