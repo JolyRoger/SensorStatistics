@@ -1,11 +1,15 @@
 package org.task
 
 import java.io.File
+import java.math.{BigDecimal, BigInteger, MathContext, RoundingMode}
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
 object SensorStatisticsMain extends App {
+
+  type CombineWithSum = Tuple5[Int, Int, Int, BigInteger, Int]
+  type CombineWithAvg = Tuple5[Int, Int, Int, Double, Int]
 
   def getListOfFiles(dir: String, validSensorData: File => Boolean) = {
     val d = new File(dir)
@@ -29,34 +33,34 @@ object SensorStatisticsMain extends App {
       (recArr(0).trim, recArr(1).trim)
     }
   }
-  /*
-      val c2 = charWord.combineByKey(
-        str => Set(str),
-        (lst: Set[String], str) => lst + str,
-        (lst: Set[String], lst2: Set[String]) => lst ++ lst2
-      )
-  */
+
+  def nanFilter(str: String) = str.startsWith("N")
+
+  def initializer(str: String) = if (nanFilter(str)) (1, 1, 101, BigInteger.ZERO, -1) else {
+      val num = str.toInt
+      (1, 0, num, BigInteger.valueOf(num), num)
+    }
+
+  def merger(statUnit: CombineWithSum, data: String) =
+    if (nanFilter(data)) (statUnit._1 + 1, statUnit._2 + 1, statUnit._3, statUnit._4, statUnit._5) else {
+      val num = data.toInt
+      (statUnit._1 + 1, statUnit._2, Math.min(statUnit._3, num), statUnit._4.add(BigInteger.valueOf(num)), Math.max(statUnit._5, num))
+    }
+
+  def combiner(statUnit1: CombineWithSum, statUnit2: CombineWithSum) =
+      (statUnit1._1 + statUnit2._1, statUnit1._2 + statUnit2._2, Math.min(statUnit1._3, statUnit2._3), statUnit1._4.add(statUnit2._4),
+        Math.max(statUnit1._5, statUnit2._5))
+
   def processRdd(pairRdd: RDD[(String, String)]) = {
-    def nanFilter(str: String) = str.startsWith("N")
-
-    val res = pairRdd.combineByKey(
-      str =>
-    )
-
-    pairRdd.map(sensor => {
-      val sensorName = sensor._1
-      val sensorData = sensor._2.toList
-      val nanAmount = sensorData.count(nanFilter)
-      val total = sensorData.size
-      val pureData = sensorData.withFilter(!nanFilter(_)).map(_.toLong)
-      val max = if (pureData.isEmpty) 0 else pureData.max
-      val min = if (pureData.isEmpty) 0 else pureData.min
-      val avg = if (pureData.isEmpty) 0 else pureData.sum / (total - nanAmount)
-
-      (sensorName, total, nanAmount, min, avg, max)
-    })
+    pairRdd.combineByKey(
+      initializer,
+      merger,
+      combiner
+    ).mapValues(v => (v._1, v._2, v._3,
+      if (v._1 - v._2 == 0) 0d else
+      new BigDecimal(v._4).divide(new BigDecimal(BigInteger.valueOf(v._1 - v._2)), 3, RoundingMode.HALF_EVEN).doubleValue,
+      v._5))
   }
 
-  def createStats =
-
+  def collectStats(path: String) = ???
 }
