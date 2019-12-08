@@ -27,6 +27,36 @@ object SensorStatisticsMain extends App {
     rdd.collect { case record if !headers.contains(record) =>
       val recArr = record.split(",")
       (recArr(0).trim, recArr(1).trim)
-    }.groupByKey
+    }
   }
+  /*
+      val c2 = charWord.combineByKey(
+        str => Set(str),
+        (lst: Set[String], str) => lst + str,
+        (lst: Set[String], lst2: Set[String]) => lst ++ lst2
+      )
+  */
+  def processRdd(pairRdd: RDD[(String, String)]) = {
+    def nanFilter(str: String) = str.startsWith("N")
+
+    val res = pairRdd.combineByKey(
+      str =>
+    )
+
+    pairRdd.map(sensor => {
+      val sensorName = sensor._1
+      val sensorData = sensor._2.toList
+      val nanAmount = sensorData.count(nanFilter)
+      val total = sensorData.size
+      val pureData = sensorData.withFilter(!nanFilter(_)).map(_.toLong)
+      val max = if (pureData.isEmpty) 0 else pureData.max
+      val min = if (pureData.isEmpty) 0 else pureData.min
+      val avg = if (pureData.isEmpty) 0 else pureData.sum / (total - nanAmount)
+
+      (sensorName, total, nanAmount, min, avg, max)
+    })
+  }
+
+  def createStats =
+
 }
