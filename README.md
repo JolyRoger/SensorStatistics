@@ -1,3 +1,20 @@
+### Notices
+
+The application uses Scala / Apache Spark for calculations and transformations.
+
+Command line program term can be interpreted differently. I've delivered it as jar artifact, running as "java -jar ...".
+
+I trust the task contract and expect valid entry data. So, probably not all possible secure checks are implemented.
+
+I display average value as an integer, even though in fact it is calculated as a floating point.
+
+### Running
+
+In order to run the application just download SensorStatistics.jar artifact and run it with a directory path as a parameter. Like:
+```
+> java -jar SensorStatistics.jar /absolute/path/to/csv/directory
+```
+
 # Sensor Statistics Task
 
 Create a command line program that calculates statistics from humidity sensor data.
