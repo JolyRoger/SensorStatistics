@@ -1,3 +1,10 @@
+### Running
+
+In order to run the application just download SensorStatistics.jar artifact and run it with a directory path as a parameter. Like:
+```
+> java -jar SensorStatistics.jar /absolute/path/to/csv/directory
+```
+
 # Sensor Statistics Task
 
 Create a command line program that calculates statistics from humidity sensor data.
