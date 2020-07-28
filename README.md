@@ -6,13 +6,13 @@ Command line program term can be interpreted differently. I've delivered it as j
 
 I trust the task contract and expect valid entry data. So, probably not all possible secure checks are implemented.
 
-I display average value as an integer, even though in fact it is calculated as a floating point.
+I display average value as an integer, even though in fact it is calculated with a floating point.
 
 ### Running
 
 In order to run the application just download SensorStatistics.jar artifact and run it with a directory path as a parameter. Like:
 ```
-> java -jar SensorStatistics.jar /absolute/path/to/csv/directory
+> java -jar SensorStatistics.jar /path/to/csv/directory
 ```
 
 # Sensor Statistics Task
