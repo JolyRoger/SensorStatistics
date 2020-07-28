@@ -11,6 +11,7 @@ object SensorStatisticsMain {
 
   /** Represents (total measurement number, failed measurement number, min, sum, max) */
   type CombineWithSum = (Long, Long, Int, Long, Int)
+
   /** Represents (total measurement number, failed measurement number, min, average, max) */
   type CombineWithAvg = (Long, Long, Int, Double, Int)
 

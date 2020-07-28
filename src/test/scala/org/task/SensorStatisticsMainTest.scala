@@ -31,7 +31,7 @@ class SensorStatisticsMainTest extends FlatSpec {
     val pairRdd = SensorStatisticsMain.createDataRdd(unionRdd, headers)
     val stats = SensorStatisticsMain.processRdd(pairRdd)
     val result = stats.collect
-    assert(result.size == 3)
+    assert(result.length == 3)
   }
 
   "The solution" should "collect statistics" in {

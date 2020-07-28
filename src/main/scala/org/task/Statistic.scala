@@ -7,9 +7,9 @@ class Statistic(val processedFiles: Int,
                 val failedMeasurements: Long,
                 val stats: Array[(String, CombineWithAvg)]) {
 
-  implicit def ~=(x: Double, y: Double, precision: Double) = (x - y).abs < precision
+  implicit def ~=(x: Double, y: Double, precision: Double): Boolean = (x - y).abs < precision
 
-  def print{
+  def print {
     println(s"\nNum of processed files: $processedFiles")
     println(s"Num of processed measurements: $totalMeasurements")
     println(s"Num of failed measurements: $failedMeasurements")
